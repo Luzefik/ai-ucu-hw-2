@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Competition data and local build output
+multiple-object-video-detection-hw-2-ucu-ai-2026/
+prep/
+
+.DS_Store
