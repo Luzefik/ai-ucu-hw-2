@@ -224,3 +224,7 @@ multiple-object-video-detection-hw-2-ucu-ai-2026/
 prep/
 
 .DS_Store
+
+# local runs of hw-2.ipynb
+outputs/
+runs-local/

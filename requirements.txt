@@ -1,0 +1,18 @@
+# Install PyTorch for your GPU first, e.g. for an RTX 50xx (CUDA 12.8+):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+ultralytics
+faster-coco-eval
+ensemble-boxes
+kagglehub
+kaggle
+six
+opencv-python
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+pillow
+tqdm
+jupyter
+ipywidgets
