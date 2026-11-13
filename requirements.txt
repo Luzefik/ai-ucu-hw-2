@@ -3,6 +3,9 @@
 ultralytics
 faster-coco-eval
 ensemble-boxes
+transformers
+timm
+rfdetr[train]
 kagglehub
 kaggle
 six
