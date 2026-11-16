@@ -1,6 +1,6 @@
 ---
 title: "HW2: Multiple Object Video Detection — Results Report"
-author: Author names
+author: Андрій Кульбаба, Олександр Лиханський
 course: Artificial Intelligence · UCU
 date: 2026-11-16
 ---
@@ -19,29 +19,6 @@ The dataset consists of  8 classes:
 - tricycle
 - bus
 - motor
-
-
-The project consists of four main parts:
-
-1. **Investigating the data**:
-    - the `iscrowd=1` rows are ignore regions copied 8 times;
-    - most objects are tiny;
-    - test footage is clearly blurrier and darker than train and val ones.
-2. **To obtain more accurate results we've compared six different detector families**:
-    - fixed protocol
-    - shared evaluator
-    - from 2 to 3 experiments per family 
-3. **For the testing purposes we've used our own pipelin**:
-
-    - we've used higher res images
-    - larger model
-    - used more of data augmentation
-    - training at test image quality
-    - inference tuning
-    - used predictions of three models to obain one, more accurate results
-    - temporal rescoring (rely on a neighbouring frame prediction additionaly)
-
-4. **Final submission** 
 
 **Final numbers (validation)**
 
@@ -70,12 +47,11 @@ The project consists of four main parts:
 
 `truncation`, `occlusion` and `track_id` were missing on the same 31.6% of rows. All of those rows had `iscrowd=1`, and every class had exactly 63,843 of them. When we deduplicated them by position, we got 63,843 unique regions, each copied 8 times (once per class). They come from VisDrone class 0 (ignored region) and class 11 (others), so neither is a training target.
 
-The YOLO label files already left them out: in 0 frames did the line count differ from the number of real boxes. Real boxes had no impossible values. There were no zero sizes, no boxes outside the frame and no duplicates, and the smallest side was 4 px.
+The YOLO label files already left them out: in 0 frames did the line count differ from the number of real boxes.
 
 **From the figure (sample frames):** the red ignore regions mostly cover far-away, dense areas such as distant traffic queues and crowds. These are places where annotators could not label every object.
 
 ![Sample frames: green boxes are labelled objects, red boxes are ignore regions](images/gt-boxes.png)
-
 
 ### 3.3 Size of the objects
 
@@ -87,25 +63,19 @@ The YOLO label files already left them out: in 0 frames did the line count diffe
 
 Person, bicycle and motor are the smallest classes and bus is the largest. After the detector resizes the frame to 960 px, the median box side is 22.8 px and 73.5% of boxes are under 32 px. That is why we added smaller anchors, starting at 16 px.
 
-Train and val are close in comparison, though - not identical. Val has fewer of the the smallest boxes, both in height (10–25 px) and in relative size, so val is slightly easier on small objects than train.
-
-The size ranges of person, bicycle and motor overlap almost completely. They differ mainly in shape and context.
-
 ![Box size by class](images/box-size.png)
 
 ![Box size in train and val](images/box-size-train-val.png)
 
-
 ### 3.4 The disballance of different classes
 
 - Car and person overpower the train class. There are roughly 52 cars for every bus.
-- Person encompasses 44% and car 28%. Bus has only 264 validation boxes, so bus AP on validation is quite noisy.
+- Person encompasses 44% and car 28%.
 - Truck and bus are very rare especially in validation. Truck is about 1% of validation against 3% of the train. Validation therefore says very little about those two classes.
 
 ![Class share in train and val](images/class-share.png)
 
 ![Occlusion by class](images/occlusion.png)
-
 
 ### 3.5 Objects position
 
@@ -118,15 +88,9 @@ Both are below the 300-query and 500-detection limits.
 
 Since clips vary significantly from each other we split by clips.
 
-
-- Folds built by clip also differ: the car share ranges from 33% to 55% and the person share from 23% to 41%. Fold 4 is the most person-heavy and fold 0 the most car-heavy.
-
 ![Object positions and objects per frame](images/object-positions.png)
 
 ![Differences between clips](images/clip-differences.png)
-
-![Class share per fold](images/folds.png)
-
 
 ### 3.6 The difference between train and validation
 
@@ -140,15 +104,7 @@ So we defined `mAP_testlike` on the 4 val clips that are at most 1920 px wide (1
 
 ![Frame resolution in train, val and test](images/resolution.png)
 
-
-**Clip length** - Test clips are short (35–148 frames), while train clips vary from 58 to 1,424 frames.
-
-![Clip length in train, val and test](images/clip-length.png)
-
-
 **Brightness and contrast** - On sampled frames, test is darker and has lower contrast.
-
-Val is extreme in both directions. One val clip is very bright (brightness about 185) and others are very dark (about 45). With only 7 clips, validation has isolated spikes.
 
 | Split | Median fine detail | Median brightness | Clips with brightness < 70 |
 |---|---|---|---|
@@ -156,14 +112,11 @@ Val is extreme in both directions. One val clip is very bright (brightness about
 | Val | 0.74 | 100.7 | 1 of 7 |
 | Test | **0.54** | 105.2 | **7 of 48** |
 
-Test is blurrier at every resolution it shares with train, for example 0.52 vs 0.75 at 1344 px. The low-resolution test clips are the blurriest (0.31 and 0.44).
-
-Test clips' blurriness spreads widely, from 0.27 to 0.88. A few are as sharp as train, but most sit well below every train clip.
+Test is blurrier at every resolution it shares with train, for example 0.52 vs 0.75 at 1344 px.
 
 Validation sits right on top of train, so **val cannot reward a model for coping with blur**. That is why we added `mAP_blur` and `mAP_shift`.
 
 ![Fine detail and brightness per clip](images/image-quality.png)
-
 
 ### 3.7 Neighbouring frames are nearly identical
 
@@ -174,7 +127,6 @@ Validation sits right on top of train, so **val cannot reward a model for coping
 The difference grows roughly linearly with the log gap and does not level off. At a gap of 5 we already have more than half of the change seen at 60, so training on every 5th frame (24,201 → 4,868 frames) keeps most of the variety.
 
 ![Pixel difference between frames at different gaps](images/frame-similarity.png)
-
 
 ### 3.8 Ignore regions
 
@@ -224,7 +176,6 @@ One frame also misses a large vehicle at the bottom edge, so failures are not so
 
 ![Faster R-CNN failure cases on val](images/frcnn-failures.png)
 
-
 ### 5.2 RetinaNet (one-stage, anchor-based)
 
 | Run | Change | mAP | Test-like | AP_small | Clips better |
@@ -237,7 +188,6 @@ One frame also misses a large vehicle at the bottom edge, so failures are not so
 All three changes raised AP_small a little, but cut AP_large sharply, from about 0.30 to about 0.23. That is where the overall loss comes from. RetinaNet is clearly weaker than Faster R-CNN, which reaches about 0.35 AP_large, but it is faster at about 10 ms per frame.
 
 ![RetinaNet vs Faster R-CNN by object size](images/two-stage-vs-retinanet.png)
-
 
 ### 5.3 YOLO and FCOS (one-stage, anchor-free)
 
@@ -252,11 +202,9 @@ All three changes raised AP_small a little, but cut AP_large sharply, from about
 | fcos-levels | level sizes 4–64 | 0.148 | 0.152 | 0.052 | 25.6 | 0/7 |
 
 - **Input resolution had the biggest impact** At 1280 px, YOLO11n gained on every object size, not just small ones at no extra inference cost.
-- YOLO26n gained on medium objects but lost on large ones.
 - On the same backbone as RetinaNet, FCOS beats it (0.160 vs 0.149), so dropping anchors helped slightly. Both FCOS changes aimed at small objects the cost us performance on every clip.
 
 ![Anchor-free vs anchor-based detectors by object size](images/anchor-free-by-size.png)
-
 
 ### 5.4 Query-based detectors (DETR family)
 
@@ -283,23 +231,17 @@ All three changes raised AP_small a little, but cut AP_large sharply, from about
 
 ![Val mAP over training: query-based detectors vs CNN detectors](images/query-training-curve.png)
 
-
 RF-DETR at 784 px is best at every object size. D-FINE-S reaches about 0.38 AP_large, close to RF-DETR, despite being a much smaller model.
 
 ![Query-based detectors by object size](images/query-by-size.png)
 
-
 ### 5.5 All detectors comparison side by side
 
-
-- The best three are all RF-DETR variants. The next six (D-FINE, RT-DETRv2 and Faster R-CNN) are packed between 0.180 and 0.207.
-- AP_small is overall close to mAP.
 - On speed, YOLO runs at 3–4 ms per frame, the CNN detectors and RF-DETR at 10–45 ms, and Deformable DETR at 81 ms.
 
 ![All detectors under the same protocol](images/all-detectors.png)
 
 ![AP per class for every detector](images/per-class-ap.png)
-
 
 **AP per class**, from the heatmap, best run `rfdetr-res`:
 
@@ -314,13 +256,10 @@ RF-DETR at 784 px is best at every object size. D-FINE-S reaches about 0.38 AP_l
 **Conclusion**
 
 1. With only 4 epochs of training it is safe to say that **pretraining quality decides the ranking**. The DINOv2 backbone of RF-DETR dominates, while RT-DETR and Deformable DETR fail.
-2. Larger input provides with a more predictable and reliable gain.
-3. Hand-tuning the label assignment for small objectsraised AP_small slightly but cost more on medium and large objects. None of these changes was worth keeping.
 
 ---
 
 ## 6. Results of our pipeline
-
 
 ### 6.1 Frame step at a fixed budget
 
@@ -336,7 +275,6 @@ Mostly there was no trend here whatsoever.
 Within this range, more distinct frames do not help, and the differences are probably the noise.
 
 ![Frame step at a fixed training budget](images/frame-step.png)
-
 
 ### 6.2 Model, data and augmentation experiments
 
@@ -367,7 +305,6 @@ What these results show:
 ![Frames degraded to test image quality](images/test-quality-degrade.png)
 
 - **Model size was the next limit:** YOLO11m gained +0.038 and YOLO11l +0.045 over YOLO11s, with YOLO11l better on 7/7 clips. Training time grew to 160 minutes.
-- Training at 1536 px gave the best AP_small among the YOLO11s runs. More frames (every 3rd instead of every 5th) did not help, matching the frame-similarity analysis.
 
 ### 6.3 Inference tuning on YOLO11l
 
@@ -452,6 +389,16 @@ The final model beats the baseline on all 7 val clips, with a mean per-clip gain
 
 ![Final predictions on the smallest and the largest test frame](images/submission-check.png)
 
+---
+
+## 7. Leaderboard
+
+| Submission | Val mAP_shift | Public | Private |
+|---|---|---|---|
+| Baseline: YOLO11n, 960 px | 0.159 | 0.2322 | 0.1540 |
+| WBF of YOLO11s-TTA + Faster R-CNN, temporal rescoring | n/a | 0.2577 | 0.2278 |
+| Same, YOLO11s retrained on train + val | n/a | 0.2449 | 0.2352 |
+| **Final submission** | **0.312** | **0.3205** | **0.2749** |
 
 ---
 
@@ -467,3 +414,32 @@ The final model beats the baseline on all 7 val clips, with a mean per-clip gain
 - Ensemble weights, inference settings and temporal parameters were chosen on the same clips that score them, so the final val numbers are optimistic.
 - The 4-epoch protocol penalises transformers that need long training.
 - The final ensemble runs at about 266 ms per frame, which suits a competition but not real-time use.
+
+---
+
+## 9. Final model and how to run
+
+| Member | Training | Inference |
+|---|---|---|
+| YOLO11l | 1280 px, scale 0.9, mixup 0.1, cosine LR, half the frames at test quality, 20 epochs | 1920 px, conf 0.001, NMS IoU 0.7, TTA |
+| RF-DETR-B | 784 px, all prepared frames, 12 epochs | 784 px |
+| Faster R-CNN | small anchors, 800–1333 px, test-quality mix, 6 epochs | original + horizontal flip, WBF 1:1, IoU 0.55 |
+| Fusion | | WBF 1:1:1, IoU 0.55, `box_and_model_avg`, then temporal rescoring k = 2, w = 0.3 |
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
+echo "KAGGLE_API_TOKEN=<your token>" > .env
+jupyter lab hw-2.ipynb   # set the flags below, then Run All
+```
+
+| Flag (first code cell) | Value | Effect |
+|---|---|---|
+| `SMOKE_TEST` | `True`, then `False` | short check of every step, then the full run |
+| `TRAIN` / `FORCE` | `True` / `False` | train missing runs, reuse finished ones from `outputs/runs` |
+| `SELECT_METRIC` | `'mAP_shift'` | metric for every selection step |
+| `TRY_P2_HEAD` | `False` | skip the optional P2-head run |
+| `USE_TRAINVAL` | `False` | no retraining on train + val |
+| `SUBMIT` | `True` | write the submission CSV and send it to Kaggle |
+
+Seed: `SEED = 42` for training, frame sampling and image degradation. Hardware: RTX 5090 Laptop GPU.

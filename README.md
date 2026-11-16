@@ -394,3 +394,32 @@ The final model beats the baseline on all 7 val clips, with a mean per-clip gain
 - Ensemble weights, inference settings and temporal parameters were chosen on the same clips that score them, so the final val numbers are optimistic.
 - The 4-epoch protocol penalises transformers that need long training.
 - The final ensemble runs at about 266 ms per frame, which suits a competition but not real-time use.
+
+---
+
+## 9. Final model and how to run
+
+| Member | Training | Inference |
+|---|---|---|
+| YOLO11l | 1280 px, scale 0.9, mixup 0.1, cosine LR, half the frames at test quality, 20 epochs | 1920 px, conf 0.001, NMS IoU 0.7, TTA |
+| RF-DETR-B | 784 px, all prepared frames, 12 epochs | 784 px |
+| Faster R-CNN | small anchors, 800–1333 px, test-quality mix, 6 epochs | original + horizontal flip, WBF 1:1, IoU 0.55 |
+| Fusion | | WBF 1:1:1, IoU 0.55, `box_and_model_avg`, then temporal rescoring k = 2, w = 0.3 |
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
+echo "KAGGLE_API_TOKEN=<your token>" > .env
+jupyter lab hw-2.ipynb   # set the flags below, then Run All
+```
+
+| Flag (first code cell) | Value | Effect |
+|---|---|---|
+| `SMOKE_TEST` | `True`, then `False` | short check of every step, then the full run |
+| `TRAIN` / `FORCE` | `True` / `False` | train missing runs, reuse finished ones from `outputs/runs` |
+| `SELECT_METRIC` | `'mAP_shift'` | metric for every selection step |
+| `TRY_P2_HEAD` | `False` | skip the optional P2-head run |
+| `USE_TRAINVAL` | `False` | no retraining on train + val |
+| `SUBMIT` | `True` | write the submission CSV and send it to Kaggle |
+
+Seed: `SEED = 42` for training, frame sampling and image degradation. Hardware: RTX 5090 Laptop GPU.
